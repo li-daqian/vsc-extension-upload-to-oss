@@ -1,10 +1,9 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import { CredentialsManager } from '../credentialsManager';
+import { CredentialsManager } from './credentialsManager';
+import { getUploadPanelHtml } from './uploadPanelHtml';
 
 // ==== 从配置中获取 Cloudflare R2 设置 ====
 function getCloudflareConfig() {
@@ -19,8 +18,7 @@ function getCloudflareConfig() {
 }
 
 function getWebviewContent(context: vscode.ExtensionContext) {
-  const htmlPath = path.join(context.extensionPath, 'src', 'upload_panel', 'upload.html');
-  return fs.readFileSync(htmlPath, 'utf8');
+  return getUploadPanelHtml();
 }
 
 async function uploadImageBuffer(imageBuffer: Buffer, context: vscode.ExtensionContext) {
