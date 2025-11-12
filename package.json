@@ -2,7 +2,7 @@
   "name": "upload-to-oss",
   "displayName": "Upload to oss",
   "description": "Upload an image to Cloudflare R2 and copy the link.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "MIT",
   "publisher": "li-daqian",
   "author": {
