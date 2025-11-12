@@ -10,6 +10,10 @@
     "email": "lidaqian11@gmail.com",
     "url": "https://lidaqian.me"
   },
+  "repository": {
+    "type": "github",
+    "url": "https://github.com/li-daqian/vsc-extension-upload-to-oss"
+  },
   "engines": {
     "vscode": "^1.105.0"
   },

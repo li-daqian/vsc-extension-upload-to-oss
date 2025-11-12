@@ -5,6 +5,23 @@ import { randomUUID } from "crypto";
 import { CredentialsManager } from './credentialsManager';
 import { getUploadPanelHtml } from './uploadPanelHtml';
 
+// 获取MIME类型对应的文件扩展名
+function getExtensionFromMimeType(mimeType: string): string {
+  switch (mimeType) {
+    case 'image/jpeg':
+    case 'image/jpg':
+      return 'jpg';
+    case 'image/png':
+      return 'png';
+    case 'image/gif':
+      return 'gif';
+    case 'image/webp':
+      return 'webp';
+    default:
+      return 'png'; // 默认扩展名
+  }
+}
+
 // ==== 从配置中获取 Cloudflare R2 设置 ====
 function getCloudflareConfig() {
   const config = vscode.workspace.getConfiguration('upload-to-oss');
@@ -21,7 +38,7 @@ function getWebviewContent(context: vscode.ExtensionContext) {
   return getUploadPanelHtml();
 }
 
-async function uploadImageBuffer(imageBuffer: Buffer, context: vscode.ExtensionContext) {
+async function uploadImageBuffer(imageBuffer: Buffer, context: vscode.ExtensionContext, mimeType: string = 'image/png') {
   try {
     // 获取配置
     const { accountId, bucketName, uploadDir, publicDomain } = getCloudflareConfig();
@@ -50,14 +67,14 @@ async function uploadImageBuffer(imageBuffer: Buffer, context: vscode.ExtensionC
       },
     });
 
-    const fileName = `${randomUUID().replace(/-/g, '')}.png`;
+    const fileName = `${randomUUID().replace(/-/g, '')}.${getExtensionFromMimeType(mimeType)}`;
 
     // 上传到 R2
     const uploadParams = {
       Bucket: bucketName,
       Key: uploadDir ? `${uploadDir}/${fileName}` : fileName,
       Body: imageBuffer,
-      ContentType: "image/png",
+      ContentType: mimeType,
     };
     await r2.send(new PutObjectCommand(uploadParams));
 
@@ -99,9 +116,11 @@ export function createUploadPanel(context: vscode.ExtensionContext) {
         case 'upload':
           try {
             vscode.window.showInformationMessage('正在上传图片...');
+            const match = message.data.match(/^data:([^;]+);base64,/);
+            const mimeType = match ? match[1] : 'image/png';
             const base64Data = message.data.replace(/^data:image\/\w+;base64,/, '');
             const imageBuffer = Buffer.from(base64Data, 'base64');
-            const imageUrl = await uploadImageBuffer(imageBuffer, context);
+            const imageUrl = await uploadImageBuffer(imageBuffer, context, mimeType);
             vscode.window.showInformationMessage(`✅ 上传成功！URL 已复制到剪贴板`);
             panel.webview.postMessage({ command: 'uploadSuccess', url: imageUrl });
           } catch (error) {
