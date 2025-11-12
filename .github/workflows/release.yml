@@ -26,6 +26,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Install vsce
+        run: pnpm add -g @vscode/vsce
+
       - name: Prepare publish
         run: pnpm run vscode:prepublish
 
