@@ -2,8 +2,9 @@ import * as vscode from 'vscode';
 
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
+import * as fs from 'fs';
+import path from 'path';
 import { CredentialsManager } from './credentialsManager';
-import { getUploadPanelHtml } from './uploadPanelHtml';
 
 // 获取MIME类型对应的文件扩展名
 function getExtensionFromMimeType(mimeType: string): string {
@@ -35,7 +36,8 @@ function getCloudflareConfig() {
 }
 
 function getWebviewContent(context: vscode.ExtensionContext) {
-  return getUploadPanelHtml();
+  const htmlPath = path.join(context.extensionPath, 'src', 'upload_panel', 'uploadPanel.html');
+  return fs.readFileSync(htmlPath, 'utf8');
 }
 
 async function uploadImageBuffer(imageBuffer: Buffer, context: vscode.ExtensionContext, mimeType: string = 'image/png') {
