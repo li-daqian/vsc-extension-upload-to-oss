@@ -36,7 +36,7 @@ function getCloudflareConfig() {
 }
 
 function getWebviewContent(context: vscode.ExtensionContext) {
-  const htmlPath = path.join(context.extensionPath, 'src', 'upload_panel', 'uploadPanel.html');
+  const htmlPath = path.join(context.extensionPath, 'media', 'uploadPanel.html');
   return fs.readFileSync(htmlPath, 'utf8');
 }
 
