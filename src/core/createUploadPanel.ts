@@ -2,8 +2,7 @@ import * as vscode from 'vscode';
 
 import * as fs from 'fs';
 import path from 'path';
-import { CredentialsManager } from '../util/credentialsManager';
-import { uploadImage } from '../util/uploadManager';
+import { UploadManager } from './uploadManager';
 
 function getWebviewContent(context: vscode.ExtensionContext) {
   const htmlPath = path.join(context.extensionPath, 'media', 'uploadPanel.html');
@@ -25,13 +24,19 @@ function createUploadPanel(context: vscode.ExtensionContext) {
   // 处理来自 webview 的消息
   panel.webview.onDidReceiveMessage(
     async message => {
-      const credentialsManager = new CredentialsManager(context);
+      let uploadManager;
+      try {
+        uploadManager = new UploadManager(context);
+      } catch (error) {
+        vscode.window.showErrorMessage(`❌ ${error instanceof Error ? error.message : '未知错误'}`);
+        return;
+      }
       switch (message.command) {
         case 'upload':
           try {
             vscode.window.showInformationMessage('正在上传图片...');
 
-            const imageUrl = await uploadImage(message.data, context);
+            const imageUrl = await uploadManager.uploadImage(message.data);
 
             await vscode.env.clipboard.writeText(imageUrl.url);
 
@@ -45,12 +50,12 @@ function createUploadPanel(context: vscode.ExtensionContext) {
           }
           break;
         case 'getKeyStatus': {
-          const hasKey = await credentialsManager.hasCredentials();
+          const hasKey = await uploadManager.hasCredentials();
           panel.webview.postMessage({ command: 'keyStatus', hasKey });
           break;
         }
         case 'setKey': {
-          const success = await credentialsManager.promptAndSaveCredentials();
+          const success = await uploadManager.promptAndSaveCredentials();
           panel.webview.postMessage({
             command: 'keyActionResult',
             success,
@@ -59,7 +64,7 @@ function createUploadPanel(context: vscode.ExtensionContext) {
           break;
         }
         case 'clearKey': {
-          await credentialsManager.clearCredentials();
+          await uploadManager.clearCredentials();
           panel.webview.postMessage({
             command: 'keyActionResult',
             success: true,
